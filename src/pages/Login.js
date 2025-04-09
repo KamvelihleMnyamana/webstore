@@ -3,27 +3,44 @@ import { useDispatch } from 'react-redux';
 import { userLogin } from '../redux/actions';
 import { Form, Button, Container } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import FormInput from './FormInput'; // Import reusable input
 
 function Login() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // State variables for username and password input fields
+  // Form state variables
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  // Function to handle login submission
+  // Handles login logic
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Check if both username and password fields are filled
+    // Simple validation
     if (!username || !password) {
       toast.error('Please enter both username and password.');
-    } else {
-      // Dispatch login action to Redux store
+      return;
+    }
+
+    // Retrieve registered users from localStorage
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+
+    // Match user credentials
+    const userFound = users.find(
+      (user) => user.username === username && user.password === password
+    );
+
+    if (userFound) {
+      // Dispatch login and redirect
       dispatch(userLogin(username));
       toast.success(`Welcome back, ${username}!`);
+      navigate('/');
       setUsername('');
       setPassword('');
+    } else {
+      toast.error('Invalid username or password.');
     }
   };
 
@@ -31,15 +48,14 @@ function Login() {
     <Container className="my-4">
       <h3>Login</h3>
       <Form onSubmit={handleLogin}>
-        <Form.Control
-          className="mb-3"
-          type="text"
+        <FormInput
+          name="username"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <Form.Control
-          className="mb-3"
+        <FormInput
+          name="password"
           type="password"
           placeholder="Password"
           value={password}

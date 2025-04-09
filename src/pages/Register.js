@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import FormInput from './FormInput'; // import the reusable input component
 
 function Register() {
-  // State variables for user input fields
+  const navigate = useNavigate();
+
+  // Form state to capture input
   const [formData, setFormData] = useState({
     firstName: '',
     surname: '',
@@ -12,34 +16,77 @@ function Register() {
     password: '',
   });
 
-  // Updates state dynamically as user types in the form
+  // Handle input field updates
   const handleInput = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handles form submission and basic validation
+  // Handle registration form submission
   const handleRegister = (e) => {
     e.preventDefault();
     const { firstName, surname, username, email, password } = formData;
 
-    // Basic validation to ensure no fields are empty
+    // Simple validation
     if (!firstName || !surname || !username || !email || !password) {
       toast.error('Please fill out all fields.');
-    } else {
-      toast.success('Registration successful!');
-      setFormData({ firstName: '', surname: '', username: '', email: '', password: '' });
+      return;
     }
+
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+
+    // Check if username is already taken
+    const userExists = users.some((user) => user.username === username);
+
+    if (userExists) {
+      toast.error('Username already taken. Please choose another one.');
+      return;
+    }
+
+    // Store user in localStorage
+    users.push(formData);
+    localStorage.setItem('users', JSON.stringify(users));
+
+    toast.success('Registration successful! Please log in.');
+    setFormData({ firstName: '', surname: '', username: '', email: '', password: '' });
+    navigate('/login');
   };
 
   return (
     <Container className="my-4">
       <h3>Register</h3>
       <Form onSubmit={handleRegister}>
-        <Form.Control name="firstName" className="mb-2" placeholder="First Name" onChange={handleInput} value={formData.firstName} />
-        <Form.Control name="surname" className="mb-2" placeholder="Surname" onChange={handleInput} value={formData.surname} />
-        <Form.Control name="username" className="mb-2" placeholder="Username" onChange={handleInput} value={formData.username} />
-        <Form.Control name="email" className="mb-2" type="email" placeholder="Email" onChange={handleInput} value={formData.email} />
-        <Form.Control name="password" className="mb-3" type="password" placeholder="Password" onChange={handleInput} value={formData.password} />
+        <FormInput
+          name="firstName"
+          placeholder="First Name"
+          value={formData.firstName}
+          onChange={handleInput}
+        />
+        <FormInput
+          name="surname"
+          placeholder="Surname"
+          value={formData.surname}
+          onChange={handleInput}
+        />
+        <FormInput
+          name="username"
+          placeholder="Username"
+          value={formData.username}
+          onChange={handleInput}
+        />
+        <FormInput
+          name="email"
+          type="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleInput}
+        />
+        <FormInput
+          name="password"
+          type="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleInput}
+        />
         <Button type="submit">Register</Button>
       </Form>
     </Container>
